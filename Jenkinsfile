@@ -94,22 +94,11 @@ pipeline {
                         returnStatus: true
                     )
 
-                    // 解析通过率
-                    env.PASS_RATE = sh(
-                        script: '''. venv/bin/activate && python -c "
-import subprocess, sys, re
-r = subprocess.run([sys.executable, '-m', 'pytest', 'tests/', '--tb=no', '-q'],
-                   capture_output=True, text=True)
-m = re.search(r'(\d+)\s+passed', r.stdout)
-passed = int(m.group(1)) if m else 0
-m = re.search(r'(\d+)\s+failed', r.stdout)
-failed = int(m.group(1)) if m else 0
-m = re.search(r'(\d+)\s+skipped', r.stdout)
-skipped = int(m.group(1)) if m else 0
-print(passed, skipped, failed)
-"''',
-                        returnStdout: true
-                    ).trim()
+                    // 执行测试并解析通过率
+                    sh '. venv/bin/activate && python _ci_parse_results.py'
+
+                    // 读取结果文件
+                    env.CI_RESULT = readFile('reports/ci_result.txt').trim()
                 }
             }
             post {
@@ -122,13 +111,13 @@ print(passed, skipped, failed)
         stage('⑤ 质量门禁 (≥ 80%)') {
             steps {
                 script {
-                    // PASS_RATE 格式: "37 19 0" → (passed skipped failed)
-                    def parts = env.PASS_RATE.trim().split()
+                    // CI_RESULT 格式: "passed skipped failed"
+                    def parts = env.CI_RESULT.split()
                     def p = parts[0].toInteger()
                     def s = parts[1].toInteger()
                     def f = parts[2].toInteger()
                     def total = p + f
-                    def passPct = total > 0 ? (p * 100 / total).round(1) : 100
+                    def passPct = total > 0 ? Math.round(p * 100.0 / total * 10) / 10 : 100
 
                     echo "通过率: ${passPct}% (${p} passed / ${total} total, ${s} skipped)"
 
