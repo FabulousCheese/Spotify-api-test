@@ -1,0 +1,611 @@
+{
+  "Albums": [
+    {
+      "method": "GET",
+      "path": "/albums/{id}",
+      "operation_id": "get-an-album",
+      "summary": "Get Album",
+      "deprecated": false,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathAlbumId"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/OneAlbum"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/albums",
+      "operation_id": "get-multiple-albums",
+      "summary": "Get Several Albums",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryAlbumIds"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ManyAlbums"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/albums/{id}/tracks",
+      "operation_id": "get-an-albums-tracks",
+      "summary": "Get Album Tracks",
+      "deprecated": false,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathAlbumId"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        },
+        {
+          "$ref": "#/components/parameters/QueryLimit"
+        },
+        {
+          "$ref": "#/components/parameters/QueryOffset"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/PagingSimplifiedTrackObject"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/artists/{id}/albums",
+      "operation_id": "get-an-artists-albums",
+      "summary": "Get Artist's Albums",
+      "deprecated": false,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathArtistId"
+        },
+        {
+          "$ref": "#/components/parameters/QueryIncludeGroups"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "title": "Limit",
+            "description": "The maximum number of items to return. Default: 5. Minimum: 1. Maximum: 10.\n",
+            "default": 5,
+            "example": 5,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          }
+        },
+        {
+          "$ref": "#/components/parameters/QueryOffset"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/PagingArtistDiscographyAlbumObject"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/me/albums",
+      "operation_id": "get-users-saved-albums",
+      "summary": "Get User's Saved Albums",
+      "deprecated": false,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryLimit"
+        },
+        {
+          "$ref": "#/components/parameters/QueryOffset"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/PagingSavedAlbumObject"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/me/albums",
+      "operation_id": "save-albums-user",
+      "summary": "Save Albums for Current User",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryAlbumIds"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "The album is saved"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/me/albums",
+      "operation_id": "remove-albums-user",
+      "summary": "Remove Users' Saved Albums",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryAlbumIds"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Album(s) have been removed from the library"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/me/albums/contains",
+      "operation_id": "check-users-saved-albums",
+      "summary": "Check User's Saved Albums",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryAlbumIds"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ArrayOfBooleans"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/browse/new-releases",
+      "operation_id": "get-new-releases",
+      "summary": "Get New Releases",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/QueryLimit"
+        },
+        {
+          "$ref": "#/components/parameters/QueryOffset"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/PagedAlbums"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    }
+  ],
+  "Artists": [
+    {
+      "method": "GET",
+      "path": "/artists/{id}",
+      "operation_id": "get-an-artist",
+      "summary": "Get Artist",
+      "deprecated": false,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathArtistId"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/OneArtist"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/artists",
+      "operation_id": "get-multiple-artists",
+      "summary": "Get Several Artists",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "ids",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Spotify Artist IDs",
+            "description": "A comma-separated list of the [Spotify IDs](/documentation/web-api/concepts/spotify-uris-ids) for the artists. Maximum: 50 IDs.\n",
+            "example": "2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ManyArtists"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/artists/{id}/top-tracks",
+      "operation_id": "get-an-artists-top-tracks",
+      "summary": "Get Artist's Top Tracks",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathArtistId"
+        },
+        {
+          "$ref": "#/components/parameters/QueryMarket"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ManyTracks"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/artists/{id}/related-artists",
+      "operation_id": "get-an-artists-related-artists",
+      "summary": "Get Artist's Related Artists",
+      "deprecated": true,
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PathArtistId"
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ManyArtists"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/me/following",
+      "operation_id": "get-followed",
+      "summary": "Get Followed Artists",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "type",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Item Type",
+            "description": "The ID type: currently only `artist` is supported.\n",
+            "enum": [
+              "artist"
+            ],
+            "example": "artist",
+            "type": "string"
+          }
+        },
+        {
+          "name": "after",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "title": "After",
+            "description": "The last artist ID retrieved from the previous request.\n",
+            "example": "0I2XqVXqHScXjHhk6AYYRe",
+            "type": "string"
+          }
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "in": "query",
+          "schema": {
+            "title": "Limit",
+            "description": "The maximum number of items to return. Default: 20\\. Minimum: 1\\. Maximum: 50\\.\n",
+            "default": 20,
+            "example": 10,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/CursorPagedArtists"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/me/following",
+      "operation_id": "follow-artists-users",
+      "summary": "Follow Artists or Users",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "type",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Item Type",
+            "description": "The ID type.\n",
+            "enum": [
+              "artist",
+              "user"
+            ],
+            "example": "artist",
+            "type": "string"
+          }
+        },
+        {
+          "name": "ids",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Spotify IDs",
+            "description": "A comma-separated list of the artist or the user [Spotify IDs](/documentation/web-api/concepts/spotify-uris-ids).\nA maximum of 50 IDs can be sent in one request.\n",
+            "example": "2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "204": {
+          "description": "Artist or user followed"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/me/following",
+      "operation_id": "unfollow-artists-users",
+      "summary": "Unfollow Artists or Users",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "type",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Item Type",
+            "description": "The ID type: either `artist` or `user`.\n",
+            "enum": [
+              "artist",
+              "user"
+            ],
+            "example": "artist",
+            "type": "string"
+          }
+        },
+        {
+          "name": "ids",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Spotify IDs",
+            "description": "A comma-separated list of the artist or the user [Spotify IDs](/documentation/web-api/concepts/spotify-uris-ids). For example: `ids=74ASZWbe4lXaubB36ztrGX,08td7MxkoHQkXnWAYD8d6Q`. A maximum of 50 IDs can be sent in one request.\n",
+            "example": "2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "204": {
+          "description": "Artist or user unfollowed"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/me/following/contains",
+      "operation_id": "check-current-user-follows",
+      "summary": "Check If User Follows Artists or Users",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "type",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Item Type",
+            "description": "The ID type: either `artist` or `user`.\n",
+            "enum": [
+              "artist",
+              "user"
+            ],
+            "example": "artist",
+            "type": "string"
+          }
+        },
+        {
+          "name": "ids",
+          "required": true,
+          "in": "query",
+          "schema": {
+            "title": "Spotify IDs",
+            "description": "A comma-separated list of the artist or the user [Spotify IDs](/documentation/web-api/concepts/spotify-uris-ids) to check. For example: `ids=74ASZWbe4lXaubB36ztrGX,08td7MxkoHQkXnWAYD8d6Q`. A maximum of 50 IDs can be sent in one request.\n",
+            "example": "2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "$ref": "#/components/responses/ArrayOfBooleans"
+        },
+        "401": {
+          "$ref": "#/components/responses/Unauthorized"
+        },
+        "403": {
+          "$ref": "#/components/responses/Forbidden"
+        },
+        "429": {
+          "$ref": "#/components/responses/TooManyRequests"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# 虚拟环境
+venv/
+
+# 凭据（绝对不能提交）
+.env
+
+# Python 缓存
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 报告（每次 CI 重新生成）
+reports/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 临时文件
+tmp.txt
+*_diagnose*.py
+_fix_*.py

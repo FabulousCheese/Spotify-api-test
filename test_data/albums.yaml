@@ -1,0 +1,292 @@
+endpoints:
+- path: /albums/{id}
+  method: GET
+  operation_id: get-an-album
+  cases:
+  - name: valid_case
+    description: 正向：获取有效专辑信息
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 200
+      body_fields:
+      - id
+      - name
+      - type
+      - uri
+      - artists
+      body_types:
+        id: string
+        name: string
+        type: string
+        artists: list
+  - name: missing_required
+    description: 异常：缺少必填参数id
+    path_params: {}
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: invalid_param
+    description: 异常：无效的id值
+    path_params:
+      id: invalid_id_123
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 401
+  - name: invalid_token
+    description: 鉴权：无效token
+    auth_header: Bearer invalid_token_12345
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 401
+- path: /albums
+  method: GET
+  operation_id: get-multiple-albums
+  cases:
+  - name: valid_case
+    description: 正向：获取多个专辑
+    query_params:
+      ids: 382ObEPsp2rxGrnsizN5TX,1A2GTWGtFfWp7KSQTwWOyo,2noRn2Aes5aoNVsU6iWThc
+    expect:
+      status: 200
+      body_fields:
+      - albums
+      body_types:
+        albums: list
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    query_params:
+      ids: 382ObEPsp2rxGrnsizN5TX,1A2GTWGtFfWp7KSQTwWOyo,2noRn2Aes5aoNVsU6iWThc
+    expect:
+      status: 401
+- path: /albums/{id}/tracks
+  method: GET
+  operation_id: get-an-albums-tracks
+  cases:
+  - name: valid_case
+    description: 正向：获取专辑曲目列表
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 200
+      body_fields:
+      - items
+      - href
+      - limit
+      - offset
+      - total
+      body_types:
+        items: list
+        href: string
+        limit: int
+        offset: int
+        total: int
+  - name: missing_required
+    description: 异常：缺少必填参数id
+    path_params: {}
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: invalid_param
+    description: 异常：无效的id值
+    path_params:
+      id: invalid_id_123
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 401
+  - name: invalid_token
+    description: 鉴权：无效token
+    auth_header: Bearer invalid_token_12345
+    path_params:
+      id: 4aawyAB9vmqN3uQ7FjRGTy
+    query_params: {}
+    expect:
+      status: 401
+- path: /artists/{id}/albums
+  method: GET
+  operation_id: get-an-artists-albums
+  cases:
+  - name: valid_case
+    description: 正向：获取指定艺术家的专辑列表
+    path_params:
+      id: 0TnOYISbd1XYRBk9myaseg
+    query_params: {}
+    expect:
+      status: 200
+      body_fields:
+      - href
+      - items
+      - limit
+      - offset
+      - total
+      body_types:
+        href: string
+        items: list
+        limit: int
+        offset: int
+        total: int
+  - name: missing_required
+    description: 异常：缺少必填路径参数id
+    path_params: {}
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: invalid_param
+    description: 异常：无效的id值
+    path_params:
+      id: invalid_id_123
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    path_params:
+      id: 0TnOYISbd1XYRBk9myaseg
+    query_params: {}
+    expect:
+      status: 401
+  - name: invalid_token
+    description: 鉴权：无效token
+    auth_header: Bearer invalid_token_12345
+    path_params:
+      id: 0TnOYISbd1XYRBk9myaseg
+    query_params: {}
+    expect:
+      status: 401
+- path: /me/albums
+  method: GET
+  operation_id: get-users-saved-albums
+  cases:
+  - name: valid_case
+    description: 正向：获取用户已保存的专辑列表
+    path_params: {}
+    query_params:
+      limit: 20
+      offset: 0
+    expect:
+      status: 200
+      body_fields:
+      - href
+      - items
+      - limit
+      - next
+      - offset
+      body_types:
+        href: string
+        items: list
+        limit: int
+        offset: int
+        total: int
+  - name: missing_required
+    description: 异常：缺少必填参数（无参数）
+    path_params: {}
+    query_params: {}
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: invalid_param
+    description: 异常：无效的limit参数值
+    path_params: {}
+    query_params:
+      limit: -1
+    expect:
+      status:
+      - 400
+      - 403
+      - 404
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    path_params: {}
+    query_params: {}
+    expect:
+      status: 401
+  - name: invalid_token
+    description: 鉴权：无效token
+    auth_header: Bearer invalid_token_12345
+    path_params: {}
+    query_params: {}
+    expect:
+      status: 401
+- path: /me/albums/contains
+  method: GET
+  operation_id: check-users-saved-albums
+  cases:
+  - name: valid_case
+    description: 正向：检查用户已保存的专辑
+    query_params:
+      ids: 382ObEPsp2rxGrnsizN5TX,1A2GTWGtFfWp7KSQTwWOyo,2noRn2Aes5aoNVsU6iWThc
+    expect:
+      status: 200
+      body_fields:
+      - items
+      body_types:
+        items: list
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    query_params:
+      ids: 382ObEPsp2rxGrnsizN5TX
+    expect:
+      status: 401
+- path: /browse/new-releases
+  method: GET
+  operation_id: get-new-releases
+  cases:
+  - name: valid_case
+    description: 正向：获取新专辑列表
+    query_params: {}
+    expect:
+      status: 200
+      body_fields:
+      - albums
+      body_types:
+        albums: object
+  - name: no_token
+    description: 鉴权：无认证token
+    skip_auth: true
+    query_params: {}
+    expect:
+      status: 401

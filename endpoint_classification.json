@@ -1,0 +1,125 @@
+{
+  "data_driven": [
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/albums/{id}",
+      "operation_id": "get-an-album",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/albums",
+      "operation_id": "get-multiple-albums",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/albums/{id}/tracks",
+      "operation_id": "get-an-albums-tracks",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/artists/{id}/albums",
+      "operation_id": "get-an-artists-albums",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/me/albums",
+      "operation_id": "get-users-saved-albums",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/me/albums/contains",
+      "operation_id": "check-users-saved-albums",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Albums",
+      "method": "GET",
+      "path": "/browse/new-releases",
+      "operation_id": "get-new-releases",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/artists/{id}",
+      "operation_id": "get-an-artist",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/artists",
+      "operation_id": "get-multiple-artists",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/artists/{id}/top-tracks",
+      "operation_id": "get-an-artists-top-tracks",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/artists/{id}/related-artists",
+      "operation_id": "get-an-artists-related-artists",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/me/following",
+      "operation_id": "get-followed",
+      "reason": "只读查询，无副作用"
+    },
+    {
+      "tag": "Artists",
+      "method": "GET",
+      "path": "/me/following/contains",
+      "operation_id": "check-current-user-follows",
+      "reason": "只读查询，无副作用"
+    }
+  ],
+  "need_code": [
+    {
+      "tag": "Albums",
+      "method": "PUT",
+      "path": "/me/albums",
+      "operation_id": "save-albums-user",
+      "reason": "PUT写操作，需清理"
+    },
+    {
+      "tag": "Albums",
+      "method": "DELETE",
+      "path": "/me/albums",
+      "operation_id": "remove-albums-user",
+      "reason": "DELETE写操作，需前置"
+    },
+    {
+      "tag": "Artists",
+      "method": "PUT",
+      "path": "/me/following",
+      "operation_id": "follow-artists-users",
+      "reason": "PUT写操作，需清理"
+    },
+    {
+      "tag": "Artists",
+      "method": "DELETE",
+      "path": "/me/following",
+      "operation_id": "unfollow-artists-users",
+      "reason": "DELETE写操作，需前置"
+    }
+  ]
+}

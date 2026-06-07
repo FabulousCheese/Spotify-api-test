@@ -1,0 +1,174 @@
+你是一个资深 Python 自动化测试工程师。请根据以下 Spotify Web API 端点定义，
+为「Albums」类别的接口生成 pytest 测试用例。
+
+
+---
+### 端点1: GET /albums/{id}
+- **operationId**: `get-an-album`
+- **summary**: Get Album
+- **deprecated**: False
+
+**参数**:
+  - `id` (path, string) [必填]
+     示例: 4aawyAB9vmqN3uQ7FjRGTy
+    说明: The [Spotify ID](/documentation/web-api/concepts/spotify-uris-ids) of the album.
+
+
+**返回值**:
+  - `200`: An album
+    返回体结构:
+{
+      "x-spotify-docs-type": "AlbumObject",
+      "required": [
+            "artists",
+            "tracks",
+            "copyrights",
+            "external_ids",
+            "genres",
+            "label",
+            "popularity"
+      ],
+      "allOf": [
+            {
+                  "type": "object",
+                  "required": [
+                        "album_type",
+                        "total_tracks",
+                        "available_markets",
+                        "external_urls",
+                        "href",
+                        "id",
+                        "images",
+                        "name",
+                        "release_date",
+                        "release_date_precision",
+                        "type",
+                        "uri"
+               
+      ...(已截断)
+  - `401`: Bad or expired token. This can happen if the user revoked a token or
+the access token has expired. You should re-authenticate the user.
+
+    返回体结构:
+{
+      "type": "object",
+      "required": [
+            "error"
+      ],
+      "properties": {
+            "error": {
+                  "type": "object",
+                  "x-spotify-docs-type": "ErrorObject",
+                  "required": [
+                        "status",
+                        "message"
+                  ],
+                  "properties": {
+                        "status": {
+                              "type": "integer",
+                              "minimum": 400,
+                              "maximum": 599,
+                              "description": "The HTTP status code (also returned in the response header; see [Response Status Codes](/documentation/web-api/concepts/api-calls#response-status-codes) for more information).\n"
+                        },
+    
+      ...(已截断)
+  - `403`: Bad OAuth request (wrong consumer key, bad nonce, expired
+timestamp...). Unfortunately, re-authenticating the user won't help here.
+
+    返回体结构:
+{
+      "type": "object",
+      "required": [
+            "error"
+      ],
+      "properties": {
+            "error": {
+                  "type": "object",
+                  "x-spotify-docs-type": "ErrorObject",
+                  "required": [
+                        "status",
+                        "message"
+                  ],
+                  "properties": {
+                        "status": {
+                              "type": "integer",
+                              "minimum": 400,
+                              "maximum": 599,
+                              "description": "The HTTP status code (also returned in the response header; see [Response Status Codes](/documentation/web-api/concepts/api-calls#response-status-codes) for more information).\n"
+                        },
+    
+      ...(已截断)
+  - `429`: The app has exceeded its rate limits.
+
+    返回体结构:
+{
+      "type": "object",
+      "required": [
+            "error"
+      ],
+      "properties": {
+            "error": {
+                  "type": "object",
+                  "x-spotify-docs-type": "ErrorObject",
+                  "required": [
+                        "status",
+                        "message"
+                  ],
+                  "properties": {
+                        "status": {
+                              "type": "integer",
+                              "minimum": 400,
+                              "maximum": 599,
+                              "description": "The HTTP status code (also returned in the response header; see [Response Status Codes](/documentation/web-api/concepts/api-calls#response-status-codes) for more information).\n"
+                        },
+    
+      ...(已截断)
+
+---
+## 生成要求
+
+### 1. 测试文件结构
+- 文件名: `test_albums.py`
+- 使用 `pytest` + `requests` 库
+- **不要在本文件中定义 `base_url` 和 `auth_token` fixture**
+  它们已在 `conftest.py` 中定义为 session 级 fixture，直接通过函数参数引用即可
+- import 写法: `import conftest  # noqa: F401`
+
+### 2. 类命名规范
+- 格式: `Test{operationId驼峰形式}`
+- 坏例子: `TestGetGetMultipleAlbums`（重复了 Get）
+- 好例子: `TestGetMultipleAlbums`、`TestSaveAlbumsUser`
+
+### 3. 测试用例范围（每个端点）
+
+#### 正向测试
+- 使用参数示例值构造请求，断言成功状态码 (200/201/204)
+- 注意: YAML中的 `example` 是文档示例，不是保证可用的真实数据
+- 直接在代码中用注释标明: `# TODO: 替换为真实测试数据`
+- 返回体断言：用 `isinstance(body["xxx"], list)` / `isinstance(body["xxx"], dict)` 做类型检查
+  **不要**用 `len(data["albums"]) == N` 这种严格数量相等（API 可能返回不同数量）
+
+#### 异常测试
+- 缺少必填参数: 断言 `status_code in [400, 403, 404]`（不同 API 返回不同，不做单一值断言）
+- 无效参数值: 断言 `status_code in [400, 403, 404]`
+
+#### 鉴权测试
+- 不传 token: 断言 `response.status_code == 401`
+- 无效 token: 断言 `response.status_code == 401`
+- 对 401 响应: 还需断言返回体含 `error` 字段
+
+#### 边界测试
+- 仅当参数有明确的 limit/offset 且有 min/max 说明时才生成边界用例
+- limit≥1、limit≤N、limit=0（越界）三种
+
+### 4. 废弃端点特殊处理
+- 如果端点标注 `deprecated: true`，**只生成 1 个正向测试和 1 个鉴权测试**
+- 不生成异常测试、边界测试、参数化测试
+- 在类 docstring 中标注: `(deprecated)`
+
+### 5. 代码风格
+- 使用 `@pytest.mark.parametrize` 做数据驱动
+- 每个函数写简短中文 docstring 说明测试目的
+- 不要 import 不在代码中使用的库
+- 只输出 Python 代码，不要输出解释文字
+- 用 ```python 和 ``` 包裹代码
