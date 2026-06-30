@@ -24,7 +24,9 @@ YAML 格式示例（test_data/albums.yaml）:
               artists: list
               popularity: int
 """
+import json
 import yaml
+import allure
 import pytest
 import requests
 from pathlib import Path
@@ -103,6 +105,12 @@ def test_data_driven(base_url, auth_token, case):
     if endpoint["path"] in REQUIRE_USER_TOKEN and not case.get("skip_auth"):
         pytest.skip(f"需要用户 token（Client Credentials 无权访问）")
 
+    # ── Allure 动态元数据 ──
+    allure.dynamic.title(case.get("name", "unnamed"))
+    allure.dynamic.feature(endpoint.get("tag", endpoint["path"]))
+    allure.dynamic.story(case.get("description", case.get("name", "")))
+    allure.dynamic.tag(endpoint.get("method", "GET"))
+
     # ── 1. 构造 URL（替换路径参数） ──
     url = f"{base_url}{endpoint['path']}"
     path_params = case.get("path_params", {})
@@ -141,6 +149,18 @@ def test_data_driven(base_url, auth_token, case):
             assert resp.status_code == expected_status, (
                 f"[{case['name']}] 期望 {expected_status}，实际 {resp.status_code}"
             )
+
+    # ── Allure 附加请求/响应详情 ──
+    allure.attach(
+        f"{method} {url}\n\nQuery: {query_params or 'N/A'}\n\nHeaders: {json.dumps({k: v[:20]+'...' if len(v)>20 else v for k, v in headers.items()}, indent=2)}",
+        "Request",
+        allure.attachment_type.TEXT,
+    )
+    allure.attach(
+        f"Status: {resp.status_code}\n\nBody:\n{resp.text[:2000]}",
+        "Response",
+        allure.attachment_type.TEXT,
+    )
 
     # ── 6. 断言返回体（仅成功响应才校验） ──
     if resp.status_code < 400 and resp.text:

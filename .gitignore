@@ -21,6 +21,9 @@ reports/
 .DS_Store
 Thumbs.db
 
+# 生成备份
+*.bak.*
+
 # 临时文件
 tmp.txt
 *_diagnose*.py

@@ -11,9 +11,6 @@ pipeline {
         MAX_REVIEW_RETRIES = '2'
     }
 
-    // 全局变量：是否已有测试用例（用于跳过 LLM 生成）
-    // 全局变量：最终通过率
-
     stages {
 
         stage('环境准备 & 检测已有用例') {
@@ -30,7 +27,6 @@ pipeline {
                         echo "LLM_MODEL=${LLM_MODEL}" >> .env
                     '''
 
-                    // 检测是否已有测试用例（避免重复调用 LLM 花钱）
                     env.HAS_TESTS = sh(
                         script: '''
                             test -f test_data/albums.yaml \
@@ -51,28 +47,35 @@ pipeline {
 
         stage('① 提取 & 分类端点') {
             steps {
-                sh '. venv/bin/activate && python extract_api.py'
-                sh '. venv/bin/activate && python classify_endpoints.py'
+                sh '. venv/bin/activate && python cli.py extract'
+                sh '. venv/bin/activate && python cli.py classify'
             }
         }
 
         stage('② LLM 生成测试用例') {
             when { expression { env.HAS_TESTS != 'true' } }
             steps {
-                echo '🤖 调用 DeepSeek 生成数据驱动 YAML ...'
-                sh '. venv/bin/activate && python generate_data_yaml.py'
+                echo '🤖 调用 DeepSeek 生成 YAML 测试数据 ...'
+                sh '. venv/bin/activate && python cli.py generate --mode data-driven'
 
                 echo '🤖 调用 DeepSeek 生成有状态链路测试 ...'
-                sh '. venv/bin/activate && python generate_tests.py --mode stateful'
+                sh '. venv/bin/activate && python cli.py generate --mode stateful'
             }
         }
 
-        stage('③ LLM 专家审查 & 改进') {
+        stage('③ 单元测试（框架自测）') {
+            steps {
+                echo '🧪 运行框架自测 ...'
+                sh '. venv/bin/activate && python -m pytest tests/unit/ -v'
+            }
+        }
+
+        stage('④ LLM 专家审查 & 改进') {
             steps {
                 script {
                     echo '🔍 LLM 测试专家审查中...'
                     def reviewExit = sh(
-                        script: '. venv/bin/activate && python review_and_improve.py',
+                        script: '. venv/bin/activate && python cli.py review',
                         returnStatus: true
                     )
 
@@ -85,33 +88,29 @@ pipeline {
             }
         }
 
-        stage('④ 执行测试') {
+        stage('⑤ 执行测试') {
             steps {
                 script {
                     echo '🚀 执行全部测试...'
                     def testExit = sh(
-                        script: '. venv/bin/activate && python run_pipeline.py --fast',
+                        script: '. venv/bin/activate && python cli.py run --fast',
                         returnStatus: true
                     )
 
-                    // 执行测试并解析通过率
-                    sh '. venv/bin/activate && python _ci_parse_results.py'
-
-                    // 读取结果文件
-                    env.CI_RESULT = readFile('reports/ci_result.txt').trim()
+                    def ciResult = readFile('reports/ci_result.txt').trim()
+                    env.CI_RESULT = ciResult
                 }
             }
             post {
                 failure {
-                    echo '⚠️  有测试失败，进入 AI 修复循环'
+                    echo '⚠️  有测试失败，请检查测试报告'
                 }
             }
         }
 
-        stage('⑤ 质量门禁 (≥ 80%)') {
+        stage('⑥ 质量门禁 (≥ 80%)') {
             steps {
                 script {
-                    // CI_RESULT 格式: "passed skipped failed"
                     def parts = env.CI_RESULT.split()
                     def p = parts[0].toInteger()
                     def s = parts[1].toInteger()
@@ -134,16 +133,15 @@ pipeline {
 
     post {
         always {
-            // Jenkins 原生测试报告
             junit 'reports/junit*.xml'
-
-            // 归档审查历史
             archiveArtifacts artifacts: 'reports/review_history.json', fingerprint: true
-
-            // 归档生成的测试用例
             archiveArtifacts artifacts: 'test_data/*.yaml', fingerprint: true
 
-            // 构建摘要
+            script {
+                sh '. venv/bin/activate && cp -f environment.xml reports/allure-results/ 2>/dev/null || true'
+                allure includeProperties: false, report: 'reports/allure-report', results: [[path: 'reports/allure-results']]
+            }
+
             script {
                 def summary = """
 | 阶段 | 状态 |
@@ -168,7 +166,7 @@ pipeline {
 
         failure {
             echo '❌ 流水线失败。请检查测试报告和审查历史。'
-            echo '提示：可手动运行 python review_and_improve.py 触发 LLM 修复'
+            echo '提示：可手动运行 python cli.py review 触发 LLM 修复'
         }
     }
 }

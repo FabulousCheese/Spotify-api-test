@@ -34,16 +34,14 @@ GET  /me/following/contains?type=artist&ids={artist_id} → 验证已取消 [fal
 - 每个工作流按 SETUP → ACTION → VERIFY → CLEANUP 的顺序组织
 
 ### 2. Fixture 设计
-- 在类中定义 `@pytest.fixture` 提供测试数据：
-  - `test_album_id`: 返回一个已知 album ID（# TODO: 替换为真实可用ID）
-  - `test_artist_id`: 返回一个已知 artist ID（# TODO: 替换为真实可用ID）
+- 在类中定义 `@pytest.fixture` 提供测试数据
 - `base_url` 和 `auth_token` 通过 conftest.py 注入，不要在本文件定义
 
 ### 3. 用例设计（每个工作流至少包含）
-- **正向链路**: setup(无) → action(PUT) → verify(GET contains 返回 true) → cleanup(DELETE)
-- **幂等测试**: 重复执行 PUT，断言不报错
-- **鉴权测试**: 不传 token 执行 PUT，断言 401
-- **无效参数**: 传入无效 ID，断言 [400, 403, 404]
+- 正向链路: setup(无) → action(PUT) → verify(GET contains 返回 true) → cleanup(DELETE)
+- 幂等测试: 重复执行 PUT，断言不报错
+- 鉴权测试: 不传 token 执行 PUT，断言 401
+- 无效参数: 传入无效 ID，断言 [400, 403, 404]
 
 ### 4. 代码风格
 - import conftest  # noqa: F401
@@ -52,6 +50,12 @@ GET  /me/following/contains?type=artist&ids={artist_id} → 验证已取消 [fal
 - 使用 `@pytest.mark.parametrize` 做数据驱动
 - 状态码异常断言用 `in [400, 403, 404]`
 
-### 5. 约束
+### 5. Allure 报告集成
+    - 导入 `import allure`
+    - 类级别使用 `@allure.feature("{类别名}")`
+    - 方法级别使用 `@allure.story("{用例名}")` + `allure.dynamic.title("{中文标题}")`
+    - 关键请求处使用 `allure.attach()` 附加请求URL、方法、响应状态码
+
+### 6. 约束
 - 只输出 Python 代码，不输出解释
 - 用 ```python 和 ``` 包裹代码
