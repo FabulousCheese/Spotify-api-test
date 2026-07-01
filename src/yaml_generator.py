@@ -77,7 +77,7 @@ endpoints:
       - name: valid_case
         description: 正向：xxx
         path_params:
-          id: "4aawyAB9vmqN3uQ7FjRGTy"
+          id: "<填入真实的 Spotify ID>"
         query_params: {{}}
         expect:
           status: 200
@@ -105,7 +105,7 @@ endpoints:
         description: 鉴权：无认证token
         skip_auth: true
         path_params:
-          id: "4aawyAB9vmqN3uQ7FjRGTy"
+          id: "<填入真实的 Spotify ID>"
         query_params: {{}}
         expect:
           status: 401
@@ -114,7 +114,7 @@ endpoints:
         description: 鉴权：无效token
         auth_header: "Bearer invalid_token_12345"
         path_params:
-          id: "4aawyAB9vmqN3uQ7FjRGTy"
+          id: "<填入真实的 Spotify ID>"
         query_params: {{}}
         expect:
           status: 401
@@ -127,6 +127,7 @@ endpoints:
 - 成功状态码用单一值，异常用数组 [400, 403, 404]
 - 鉴权用例必须加 skip_auth: true 或 auth_header 字段
 - 禁止生成 429 rate_limited 用例
+- ID 值必须使用参数定义中的示例值（如果有）；没有示例值时根据端点实体类型使用正确的真实 ID：album 端点用 album ID，artist 端点用 artist ID。禁止把 album ID 填到 artist 端点的路径参数中
 - 只输出 YAML，不输出解释
 """
 

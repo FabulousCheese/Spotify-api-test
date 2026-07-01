@@ -10,8 +10,13 @@ Spotify API 自动化测试框架 — 统一 CLI 入口。
   python cli.py run --fast           # 快速执行已有测试
   python cli.py run --skip-llm       # 跳过 LLM 生成
   python cli.py run --dry-run        # 只收集用例不执行
-  python cli.py review               # LLM 专家审查
+  python cli.py review               # LLM 专家审查（--force 强制执行）
+  python cli.py review --fix         # 审查后运行 audit + auto_fix
   python cli.py pipeline             # 完整流水线
+  python cli.py report               # 生成 Allure HTML 报告并打开浏览器
+  python cli.py audit                # 双角色交叉审计测试数据质量
+  python cli.py fix                  # 根据审计报告自动修复问题
+  python cli.py coverage             # 端点覆盖率统计
 """
 
 from __future__ import annotations
@@ -133,6 +138,9 @@ def cmd_run(args: argparse.Namespace) -> int:
         pipeline.step_execute_data_driven()
         pipeline.step_execute_stateful()
         pipeline.step_report()
+        _write_ci_result(pipeline)
+        if _generate_allure_report(logger) and not args.no_open:
+            _serve_allure_report()
         return 0
 
     if not args.skip_llm:
@@ -268,51 +276,39 @@ def cmd_review(args: argparse.Namespace) -> int:
     logger.info("初次结果: %d passed, %d failed (%.1f%%)",
                 result["passed"], result["failed"], result["pass_rate"])
 
-    if result["pass_rate"] >= cfg.pass_threshold:
-        logger.info("通过率已达 %.1f%%，无需审查", result["pass_rate"])
+    if not args.force and result["pass_rate"] >= cfg.pass_threshold:
+        logger.info("通过率已达 %.1f%%，无需审查（使用 --force 强制执行）", result["pass_rate"])
         _save_review_log("success", [])
         return 0
 
-    logger.info("通过率 %.1f%% < %.0f%%，启动 LLM 专家审查", result["pass_rate"], cfg.pass_threshold)
+    if args.force:
+        logger.info("强制启动 LLM 专家审查（通过率 %.1f%%）", result["pass_rate"])
+    else:
+        logger.info("通过率 %.1f%% < %.0f%%，启动 LLM 专家审查", result["pass_rate"], cfg.pass_threshold)
     client = LLMClient()
     ok = review_and_improve(result, client, max_retries=args.max_retries)
+
+    if args.auto_fix:
+        logger.info("运行 audit + auto_fix 精确修复...")
+        from src.auditor import audit_yaml_cases, audit_stateful_code, save_audit_report, auto_fix
+        yaml_result = audit_yaml_cases(client=client)
+        code_result = audit_stateful_code(client=client)
+        save_audit_report(yaml_result, code_result)
+        fix_result = auto_fix(client=client)
+        logger.info("fix: 🤖 fixed=%d, 👤 skipped=%d, ❌ failed=%d",
+                    fix_result.get("fixed", 0), fix_result.get("skipped", 0),
+                    fix_result.get("failed", 0))
+
     return 0 if ok else 1
 
 
 def cmd_report(args: argparse.Namespace) -> int:
     """生成 Allure HTML 报告并打开。"""
-    import shutil
-    import webbrowser
-
     logger = get_logger("report")
-    allure_results = Path("reports/allure-results")
-    allure_report = Path("reports/allure-report")
-
-    if not allure_results.exists() or not list(allure_results.glob("*.json")):
-        logger.error("未找到 Allure 结果文件，请先执行测试: python cli.py run --fast")
+    if not _generate_allure_report(logger):
         return 1
-
-    # 复制 environment.xml
-    env_src = Path("environment.xml")
-    if env_src.exists():
-        shutil.copy(env_src, allure_results / "environment.xml")
-
-    logger.info("生成 Allure HTML 报告...")
-    result = subprocess.run(
-        ["allure", "generate", str(allure_results), "-o", str(allure_report), "--clean"],
-        capture_output=False,
-    )
-    if result.returncode != 0:
-        logger.error("Allure 报告生成失败（是否已安装 allure CLI？）")
-        logger.error("安装方法: brew install allure (macOS) 或 https://docs.qameta.io/allure/")
-        return result.returncode
-
-    logger.info("报告已生成: %s", allure_report / "index.html")
-
     if not args.no_open:
-        report_index = str((allure_report / "index.html").resolve())
-        webbrowser.open(f"file://{report_index}")
-
+        _serve_allure_report()
     return 0
 
 
@@ -326,6 +322,63 @@ def cmd_pipeline(args: argparse.Namespace) -> int:
 
 
 # ── 辅助函数 ──
+
+def _generate_allure_report(logger: Any) -> bool:
+    """生成 Allure HTML 报告。返回是否成功。"""
+    import shutil
+    allure_results = Path("reports/allure-results")
+    allure_report = Path("reports/allure-report")
+
+    if not allure_results.exists() or not list(allure_results.glob("*.json")):
+        logger.warning("无 Allure 结果文件，跳过 HTML 报告生成")
+        return False
+
+    env_src = Path("environment.xml")
+    if env_src.exists():
+        shutil.copy(env_src, allure_results / "environment.xml")
+
+    logger.info("生成 Allure HTML 报告...")
+    result = subprocess.run(
+        ["allure", "generate", str(allure_results), "-o", str(allure_report), "--clean"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        logger.info("Allure 报告: %s", (allure_report / "index.html").resolve())
+        return True
+    logger.warning("Allure 报告生成失败（是否已安装 allure CLI？）")
+    return False
+
+
+def _serve_allure_report() -> None:
+    """启动本地 HTTP 服务打开 Allure 报告，避免 file:// 协议的 500 问题。"""
+    import socket
+    import webbrowser
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+    report_dir = Path("reports/allure-report").resolve()
+    if not (report_dir / "index.html").exists():
+        return
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+
+    class Handler(SimpleHTTPRequestHandler):
+        def __init__(self, *args: Any, **kwargs: Any):
+            super().__init__(*args, directory=str(report_dir), **kwargs)
+
+    url = f"http://127.0.0.1:{port}"
+    webbrowser.open(url)
+    print(f"Allure 报告: {url}")
+    print("按 Ctrl+C 停止服务")
+
+    server = HTTPServer(("127.0.0.1", port), Handler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.shutdown()
+
 
 def _write_ci_result(pipeline: Any) -> None:
     """输出 CI 兼容的结果文件。"""
@@ -383,10 +436,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--fast", action="store_true", help="快速模式: 只执行已有测试")
     p_run.add_argument("--skip-llm", action="store_true", help="跳过 LLM 生成步骤")
     p_run.add_argument("--dry-run", action="store_true", help="只收集用例不执行")
+    p_run.add_argument("--no-open", action="store_true", help="不自动打开浏览器查看报告")
 
     # review
     p_review = sub.add_parser("review", help="LLM 专家审查 & 自动改进")
     p_review.add_argument("--max-retries", type=int, default=2, help="最大审查轮数 (默认: 2)")
+    p_review.add_argument("--force", action="store_true", help="强制执行审查，即使通过率已达阈值")
+    p_review.add_argument("--fix", action="store_true", dest="auto_fix", help="审查结束后运行 audit + auto_fix 精确修复")
 
     # pipeline
     sub.add_parser("pipeline", help="完整流水线 (extract→classify→generate→validate→execute)")

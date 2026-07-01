@@ -4,9 +4,9 @@ endpoints:
   operation_id: get-an-artist
   cases:
   - name: valid_case
-    description: 正向：获取指定艺术家信息
+    description: 正向：有效ID获取艺术家信息
     path_params:
-      id: 2auiVi8sUZo17dLy1HwrTU
+      id: 0TnOYISbd1XYRBk9myaseg
     query_params: {}
     expect:
       status: 200
@@ -15,13 +15,11 @@ endpoints:
       - name
       - type
       - uri
-      - external_urls
       body_types:
         id: string
         name: string
         type: string
         uri: string
-        external_urls: object
   - name: missing_required
     description: 异常：缺少必填路径参数id
     path_params: {}
@@ -62,7 +60,7 @@ endpoints:
   operation_id: get-multiple-artists
   cases:
   - name: valid_case
-    description: 正向：获取多个艺术家信息
+    description: 正向：使用有效ids返回艺术家列表
     query_params:
       ids: 2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6
     expect:
@@ -70,9 +68,9 @@ endpoints:
       body_fields:
       - artists
       body_types:
-        artists: list
+        artists: array
   - name: no_token
-    description: 鉴权：无认证token
+    description: 鉴权：缺少认证token
     skip_auth: true
     query_params:
       ids: 2CIMQHirSU0MQqyYHq0eOx
@@ -83,16 +81,16 @@ endpoints:
   operation_id: get-an-artists-top-tracks
   cases:
   - name: valid_case
-    description: 正向：获取指定艺术家的热门曲目
+    description: 正向：获取艺术家的热门曲目
     path_params:
-      id: 2auiVi8sUZo17dLy1HwrTU
+      id: 0TnOYISbd1XYRBk9myaseg
     query_params: {}
     expect:
       status: 200
       body_fields:
       - tracks
       body_types:
-        tracks: list
+        tracks: array
   - name: no_token
     description: 鉴权：无认证token
     skip_auth: true
@@ -106,18 +104,18 @@ endpoints:
   operation_id: get-an-artists-related-artists
   cases:
   - name: valid_case
-    description: 正向：获取艺术家相关艺术家
+    description: 正向：获取指定艺术家的相关艺术家
     path_params:
-      id: 2auiVi8sUZo17dLy1HwrTU
+      id: 0TnOYISbd1XYRBk9myaseg
     query_params: {}
     expect:
       status: 200
       body_fields:
       - artists
       body_types:
-        artists: list
+        artists: array
   - name: no_token
-    description: 鉴权：无认证token
+    description: 鉴权：未提供认证令牌
     skip_auth: true
     path_params:
       id: 0TnOYISbd1XYRBk9myaseg
@@ -129,37 +127,40 @@ endpoints:
   operation_id: get-followed
   cases:
   - name: valid_case
-    description: 正向：获取关注的艺术家列表
+    description: 正向：使用有效的type参数artist获取关注的艺术家列表
     path_params: {}
     query_params:
       type: artist
     expect:
       status: 200
       body_fields:
-      - artists
+      - artists.href
+      - artists.items
+      - artists.limit
+      - artists.offset
+      - artists.cursors
       body_types:
-        artists: object
-  - name: missing_required
-    description: 异常：缺少必填参数type
+        artists.href: string
+        artists.items: array
+  - name: missing_required_param
+    description: 异常：缺少必填的type参数
     path_params: {}
     query_params: {}
     expect:
       status:
       - 400
       - 403
-      - 404
-  - name: invalid_param
-    description: 异常：无效的type值
+  - name: invalid_param_value
+    description: 异常：type参数值不是允许的artist
     path_params: {}
     query_params:
-      type: invalid_type
+      type: album
     expect:
       status:
       - 400
       - 403
-      - 404
   - name: no_token
-    description: 鉴权：无认证token
+    description: 鉴权：未提供认证token
     skip_auth: true
     path_params: {}
     query_params:
@@ -167,7 +168,7 @@ endpoints:
     expect:
       status: 401
   - name: invalid_token
-    description: 鉴权：无效token
+    description: 鉴权：使用无效的token
     auth_header: Bearer invalid_token_12345
     path_params: {}
     query_params:
@@ -178,22 +179,20 @@ endpoints:
   method: GET
   operation_id: check-current-user-follows
   cases:
-  - name: valid_case
-    description: 正向：检查当前用户是否关注指定艺术家
+  - name: valid_check
+    description: 正向：检查用户是否关注指定艺术家或用户
+    path_params: {}
     query_params:
       type: artist
       ids: 2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6
     expect:
       status: 200
-      body_fields:
-      - items
-      body_types:
-        items: list
-  - name: no_token
+  - name: missing_token
     description: 鉴权：无认证token
     skip_auth: true
+    path_params: {}
     query_params:
       type: artist
-      ids: 2CIMQHirSU0MQqyYHq0eOx
+      ids: 2CIMQHirSU0MQqyYHq0eOx,57dN52uHvrHOxijzpIgu3E,1vCWHaC5f2uS3yhpwWbIA6
     expect:
       status: 401

@@ -28,3 +28,4 @@ Thumbs.db
 tmp.txt
 *_diagnose*.py
 _fix_*.py
+*.log

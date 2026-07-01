@@ -2,10 +2,10 @@
 无法用纯数据驱动，需要代码级编排。请为它们生成 pytest 链路测试。
 
 ## 端点清单
-  - PUT /me/albums | operationId: save-albums-user | reason: PUT写操作，需清理
-  - DELETE /me/albums | operationId: remove-albums-user | reason: DELETE写操作，需前置
-  - PUT /me/following | operationId: follow-artists-users | reason: PUT写操作，需清理
-  - DELETE /me/following | operationId: unfollow-artists-users | reason: DELETE写操作，需前置
+  - PUT /me/albums | operationId: save-albums-user | reason: 写操作，需清理状态
+  - DELETE /me/albums | operationId: remove-albums-user | reason: 写操作，需清理状态
+  - PUT /me/following | operationId: follow-artists-users | reason: 写操作，需清理状态
+  - DELETE /me/following | operationId: unfollow-artists-users | reason: 写操作，需清理状态
 
 
 ### 工作流 1：专辑收藏生命周期

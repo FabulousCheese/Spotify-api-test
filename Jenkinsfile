@@ -4,7 +4,7 @@ pipeline {
     environment {
         LLM_API_KEY     = credentials('deepseek-api-key')
         LLM_API_BASE    = 'https://api.deepseek.com'
-        LLM_MODEL       = 'deepseek-chat'
+        LLM_MODEL       = 'deepseek-v4-pro'
         CLIENT_ID       = credentials('spotify-client-id')
         CLIENT_SECRET   = credentials('spotify-client-secret')
         PASS_THRESHOLD  = '80'

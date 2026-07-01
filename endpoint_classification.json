@@ -98,28 +98,28 @@
       "method": "PUT",
       "path": "/me/albums",
       "operation_id": "save-albums-user",
-      "reason": "PUT写操作，需清理"
+      "reason": "写操作，需清理状态"
     },
     {
       "tag": "Albums",
       "method": "DELETE",
       "path": "/me/albums",
       "operation_id": "remove-albums-user",
-      "reason": "DELETE写操作，需前置"
+      "reason": "写操作，需清理状态"
     },
     {
       "tag": "Artists",
       "method": "PUT",
       "path": "/me/following",
       "operation_id": "follow-artists-users",
-      "reason": "PUT写操作，需清理"
+      "reason": "写操作，需清理状态"
     },
     {
       "tag": "Artists",
       "method": "DELETE",
       "path": "/me/following",
       "operation_id": "unfollow-artists-users",
-      "reason": "DELETE写操作，需前置"
+      "reason": "写操作，需清理状态"
     }
   ]
 }

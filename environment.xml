@@ -1,0 +1,9 @@
+<environment>
+    <parameter><key>Project</key><value>Spotify API 自动化测试框架</value></parameter>
+    <parameter><key>BaseUrl</key><value>https://api.spotify.com/v1</value></parameter>
+    <parameter><key>Auth Mode</key><value>Client Credentials</value></parameter>
+    <parameter><key>Python Version</key><value>3.10</value></parameter>
+    <parameter><key>Author</key><value>陈冠升</value></parameter>
+    <parameter><key>Framework</key><value>LLM 驱动 + 数据驱动 + 有状态链路</value></parameter>
+    <parameter><key>CI</key><value>Jenkins</value></parameter>
+</environment>

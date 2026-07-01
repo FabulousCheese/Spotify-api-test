@@ -34,7 +34,7 @@ class Config:
         default_factory=lambda: os.getenv("LLM_API_BASE", "https://api.deepseek.com")
     )
     llm_model: str = field(
-        default_factory=lambda: os.getenv("LLM_MODEL", "deepseek-v4-flash")
+        default_factory=lambda: os.getenv("LLM_MODEL", "deepseek-v4-pro")
     )
 
     # ── OpenAPI 解析 ──

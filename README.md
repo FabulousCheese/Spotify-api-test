@@ -77,7 +77,7 @@ ClientId=your_client_id
 Secret=your_client_secret
 LLM_API_KEY=sk-your-key-here
 LLM_API_BASE=https://api.deepseek.com
-LLM_MODEL=deepseek-chat
+LLM_MODEL=deepseek-v4-pro
 ```
 
 ### 一行跑通
