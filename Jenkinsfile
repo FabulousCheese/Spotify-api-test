@@ -133,13 +133,17 @@ pipeline {
 
     post {
         always {
-            junit 'reports/junit*.xml'
-            archiveArtifacts artifacts: 'reports/review_history.json', fingerprint: true
-            archiveArtifacts artifacts: 'test_data/*.yaml', fingerprint: true
+            junit allowEmptyResults: true, testResults: 'reports/junit*.xml'
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'reports/review_history.json', fingerprint: true
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'test_data/*.yaml', fingerprint: true
 
             script {
-                sh '. venv/bin/activate && cp -f environment.xml reports/allure-results/ 2>/dev/null || true'
-                allure includeProperties: false, report: 'reports/allure-report', results: [[path: 'reports/allure-results']]
+                if (fileExists('reports/allure-results')) {
+                    sh '. venv/bin/activate && cp -f environment.xml reports/allure-results/ 2>/dev/null || true'
+                    allure includeProperties: false, report: 'reports/allure-report', results: [[path: 'reports/allure-results']]
+                } else {
+                    echo '跳过 Allure 报告（无 allure-results 目录）'
+                }
             }
 
             script {
