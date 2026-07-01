@@ -116,9 +116,9 @@ pipeline {
                     def s = parts[1].toInteger()
                     def f = parts[2].toInteger()
                     def total = p + f
-                    def passPct = total > 0 ? ((p * 100.0 / total) as double).round(1) : 100
+                    def passPct = total > 0 ? (p * 100 / total) as int : 100
 
-                    echo "通过率: ${passPct}% (${p} passed / ${total} total, ${s} skipped)"
+                    echo "通过率: ${(p * 100 / total)}% (${p} passed / ${f} failed / ${s} skipped)"
 
                     if (passPct >= env.PASS_THRESHOLD.toInteger()) {
                         echo "✅ 通过率 ${passPct}% ≥ ${env.PASS_THRESHOLD}%"
