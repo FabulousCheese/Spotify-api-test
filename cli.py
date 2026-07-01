@@ -386,19 +386,47 @@ def _serve_allure_report() -> None:
 
 
 def _write_ci_result(pipeline: Any) -> None:
-    """输出 CI 兼容的结果文件。"""
+    """输出 CI 兼容的结果文件，从 JUnit XML 解析真实测试用例数。"""
+    import xml.etree.ElementTree as ET
+
     logger = get_logger("cli")
-    passed = sum(1 for s in pipeline.steps_result
-                 if "PASS" in str(s.get("status", "")))
-    failed = sum(1 for s in pipeline.steps_result
-                 if "FAIL" in str(s.get("status", "")))
-    skipped = sum(1 for s in pipeline.steps_result
-                  if "SKIP" in str(s.get("status", "")))
+    total_tests = 0
+    total_failures = 0
+    total_errors = 0
+    total_skipped = 0
+
+    junit_files = sorted(Path("reports").glob("junit*.xml"))
+    # 排除 reviewer.py 产生的全量文件，避免与分步 XML 重复计数
+    junit_files = [f for f in junit_files if f.name != "junit.xml"]
+    for xml_file in junit_files:
+        try:
+            tree = ET.parse(xml_file)
+            for ts in tree.iter("testsuite"):
+                total_tests += int(ts.attrib.get("tests", 0))
+                total_failures += int(ts.attrib.get("failures", 0))
+                total_errors += int(ts.attrib.get("errors", 0))
+                total_skipped += int(ts.attrib.get("skipped", 0))
+        except ET.ParseError:
+            logger.warning("JUnit XML 解析失败: %s", xml_file)
+
+    if total_tests == 0:
+        # 回退：用步骤级统计
+        passed = sum(1 for s in pipeline.steps_result
+                     if "PASS" in str(s.get("status", "")))
+        failed = sum(1 for s in pipeline.steps_result
+                     if "FAIL" in str(s.get("status", "")))
+        skipped = sum(1 for s in pipeline.steps_result
+                      if "SKIP" in str(s.get("status", "")))
+    else:
+        failed = total_failures + total_errors
+        skipped = total_skipped
+        passed = total_tests - failed - skipped
 
     Path("reports").mkdir(exist_ok=True)
     content = f"{passed} {skipped} {failed}"
     (Path("reports") / "ci_result.txt").write_text(content, encoding="utf-8")
-    logger.info("CI 结果: %s", content)
+    logger.info("CI 结果: %s (来源: %s)", content,
+                "JUnit XML" if total_tests > 0 else "步骤统计")
 
 
 def _save_review_log(status: str, history: list[dict[str, Any]]) -> None:
