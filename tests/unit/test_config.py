@@ -17,7 +17,7 @@ class TestConfigDefaults:
             assert cfg.spotify_client_secret == ""
             assert cfg.llm_api_key == ""
             assert cfg.llm_api_base == "https://api.deepseek.com"
-            assert cfg.llm_model == "deepseek-chat"
+            assert cfg.llm_model == "deepseek-v4-pro"
             assert cfg.max_resolve_depth == 3
             assert cfg.skip_optional_params is True
             assert cfg.base_url == "https://api.spotify.com/v1"
