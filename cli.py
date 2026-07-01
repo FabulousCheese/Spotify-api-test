@@ -338,10 +338,15 @@ def _generate_allure_report(logger: Any) -> bool:
         shutil.copy(env_src, allure_results / "environment.xml")
 
     logger.info("生成 Allure HTML 报告...")
-    result = subprocess.run(
-        ["allure", "generate", str(allure_results), "-o", str(allure_report), "--clean"],
-        capture_output=True, text=True,
-    )
+    try:
+        result = subprocess.run(
+            ["allure", "generate", str(allure_results), "-o", str(allure_report), "--clean"],
+            capture_output=True, text=True,
+        )
+    except FileNotFoundError:
+        logger.warning("allure CLI 未安装或不在 PATH 中，跳过 HTML 报告生成")
+        logger.warning("（Jenkins 中由 Allure Plugin 自动生成，无需本地安装）")
+        return False
     if result.returncode == 0:
         logger.info("Allure 报告: %s", (allure_report / "index.html").resolve())
         return True
