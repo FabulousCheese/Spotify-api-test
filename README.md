@@ -252,10 +252,22 @@ python cli.py review
 | Allure (pytest + CLI) | 可视化测试报告 + 趋势历史 |
 | mypy | 静态类型检查 |
 
-## Jenkins 集成
+## CI/CD 流水线
+
+Jenkins Pipeline 6 阶段全自动化，含质量门禁（通过率 ≥ 80%）：
+
+![Jenkins Pipeline](jenkins跑通截图.png)
+
+### 配置步骤
 
 1. **添加凭据**：Jenkins Credentials → `deepseek-api-key`、`spotify-client-id`、`spotify-client-secret`
-2. **创建 Pipeline Job**：指向仓库 + `Jenkinsfile`
-3. **构建**：自动解析 `reports/junit*.xml` 生成趋势图
+2. **创建 Pipeline Job**：指向仓库 + `Jenkinsfile`（建议用 SSH URL 避免 HTTPS 超时）
+3. **构建**：自动解析 `reports/junit*.xml` 生成趋势图，Allure Plugin 自动生成 HTML 报告
 
-流水线包含阶段：环境准备 → 提取分类 → LLM 生成 → 框架自测 → LLM 审查 → 执行测试 → 质量门禁
+流水线阶段：环境准备 → 提取 & 分类 → LLM 生成 → 框架自测 → LLM 审查 → 执行测试 → 质量门禁
+
+## 测试报告
+
+Allure 可视化报告，含请求/响应附件、通过率趋势：
+
+![Allure Report](allure报告截图.png)
